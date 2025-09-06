@@ -12,9 +12,10 @@ int main()
     }
     int left=0,right=n-1;
     sort(num,num+n);
+    // 记得双指针之前要先排序
     while(left<right)
     { 
-
+        //将等于或者大于Target的舍去即可，小于可以遍历所有情况记录
         int k = left+1;
         if (num[left]+num[right]<target)
         {
@@ -30,5 +31,6 @@ int main()
     }
 
     return 0;
+
 
 }
