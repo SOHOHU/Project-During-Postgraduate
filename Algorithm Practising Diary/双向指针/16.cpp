@@ -11,50 +11,39 @@ int main()
         cin>>num[i];
     }
     sort(num,num+n);
-    int left=0,right=n-1;
-    while(left+1<right)
-    {
-        int temp=0;
-        if(num[left]+num[right]>target)
+    int left=0,right=n-1,mid=left+1;
+    while(left<=right)
+    {   
+        mid=left+1;
+        right=n-1;
+        if(num[left]+num[mid]+num[right]==target)
         {
-            right--;
-            /* code */
-        }else if(num[left]+num[right]==target)
-        {
-            temp = num[left]+num[left+1]+num[right];
-            left++;
-        }else{
-            int mid=left+1;
-            while(mid<right)
+            //直接找到答案
+            cout<<0<<"["<<left<<","<<mid<<","<<right<<"]"<<end;
+            break;
+        }else｛
+            //三数求和
+            int dis=num[left]+num[mid]+num[right]-target;
+            while(mid<=right)
             {
-                int sum2;
-                int sum1=num[left]+num[mid]+num[right]-target;
-                if(mid!=right-1)
+                //记得时刻更新最小距离
+                if(num[left]+num[mid]+num[right]<0)
                 {
-                    sum2=num[left]+num[mid+1]+num[right]-target;
-                    if(sum1*sum2<0)
-                    {
-                        if(abs(sum1)>abs(sum2)){
-                            temp=sum1+target;
-                        }else{
-                            temp=sum2+target;
-                        }
-                    }else{
-                        temp=sum2+target;
-                    }
+                    mid++;
+                    dis=min(dis,num[left]+num[mid]+num[right]-target);
+                }else if(num[left]+num[mid]+num[right]>0)
+                {
+                    right--;
+                    dis=min(dis,num[left]+num[mid]+num[right]-target);
                 }else{
-                    temp = sum1+target;
+                    cout<<0<<"["<<left<<","<<mid<<","<<right<<"]"<<end;
+                    return 0;
                 }
-                mid++;
             }
-        }
-        if(abs(temp-target)<=abs(result-target))
-        {
-            result=temp;
-        }
+        ｝
         left++;
     }
-    cout<<result;
+    cout<<dis<<"["<<left<<","<<mid<<","<<right<<"]"<<end;
     return 0;
-
 }
+
