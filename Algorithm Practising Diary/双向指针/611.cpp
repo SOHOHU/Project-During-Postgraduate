@@ -13,6 +13,7 @@ int main()
     int left=0,right=n-1,mid=right-1;
 
     sort(num,num+n);
+    // 用控制变量法保证两边之和大于第三边即可
     while(left<right){
         while(mid>left)
         {
@@ -34,4 +35,5 @@ int main()
         left=0;
     }
     return 0;
+
 }
