@@ -2,6 +2,7 @@
 #include <algorithm>
 using namespace std;
 
+// 第一种方法，前后缀法
 int main()
 {
     int n,num[1024];
@@ -20,6 +21,7 @@ int main()
         front[i]=max(front[i-1],num[i]);
         latter[n-1-i]=max(latter[n-i],num[n-1-i]);
     }
+    //记录前缀和后缀，将理论可装水的体积扣去障碍即可。
     int sum=0;
     for(int i=0;i<n;i++)
     {
@@ -28,4 +30,5 @@ int main()
 
     cout<<sum;
     return 0;
+
 }
