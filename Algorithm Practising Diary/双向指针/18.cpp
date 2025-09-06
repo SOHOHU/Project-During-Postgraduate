@@ -12,37 +12,45 @@ int main()
     }
     sort(num,num+n);
     int left=0,right=n-1,mid1=left+1,mid2=right-1;
-    while(1)
+    while(left<right)
     {
-        if(num[left]+num[right]>target)
+        //控制R不变
+        while(left<mid2)
         {
-            right--;
-            continue;
-        }
-
-        mid1=left+1;
-        mid2=right-1;
-        if(mid1>=mid2)
-        {
-            break;
-        }
-        target = target-num[left]-num[right];
-        while(mid1<mid2){
-            if(num[mid1]+num[mid2]>target)
+            //控制L不变
+            if(num[left]+num[right]+num[mid1]+num[mid2]==target)
             {
-                mid2--;
-            }else if(num[mid1]+num[mid2]<target)
-            {
-                mid1++;
+                //直接成立；
+                cout<<left<<" "<<right<<" "<<mid1<<" "<<mid2<<"ok"<<endl;
+                break；
             }else{
-                cout<<"["<<num[left]<<","<<num[mid1]<<","<<num[mid2]<<","<<num[right]<<"]";
-                mid2--;
-                while (num[mid2]==num[mid2-1])
-                    mid2--;
+                //两个变量进行双向指针查找
+                int temp=target+num[left]+num[right];
+                while(mid1<mid2)
+                {
+                    if(num[mid1]+num[mid2]>temp)
+                    {
+                        mid2--;
+                    }else if(num[mid1]+num[mid2]<temp){
+                        mid1++
+                    }else{
+                        cout<<left<<" "<<right<<" "<<mid1<<" "<<mid2<<"ok"<<endl;
+                        break；
+                    }
+                }
             }
+            //找不到跟新参数
+            left++;
+            mid1=left+1;
+            mid2=right-1;
         }
-        left++;
+        //找不到跟新参数
+        right--;
+        left=0;
+        mid2=right-1;
+        mid1=left+1；
     }
     return 0;
+
 
 }
