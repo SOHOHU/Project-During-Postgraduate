@@ -10,38 +10,51 @@ left和right确定行二分的mid
 */
 
 #include <iostream>
-#include <stdlib>
+#include <stdlib.h>
 #include <algorithm>
 using namespace std;
 int main()
 {
   int arr[10][10],n;
-  for(int i=0;i<n;i++)
+  cin >> n;
+  for(int i=0;i<=n+1;i++)
   {
       arr[0][i]=-1;
       arr[i][0]=-1;
-      arr[n-1][i]=-1;
-      arr[i][n-1]=-1;
+      arr[n+1][i]=-1;
+      arr[i][n+1]=-1;
   }
-  for(int i=1;i<n;i++)
+  for(int i=1;i<=n;i++)
   {
-      for(int j=1;j<n;j++)
+      for(int j=1;j<=n;j++)
       {
           cin>>arr[i][j];
       }
   }
   //输入数组
-  int left=0,right=n-1;
-  for(int i=0;i<n;i++)
+  int left=0,right=n+1,mid,index;
+  for(int i=0;i<=n+1;i++)
   {
+      left=0;
+      right=n+1;
+      //找到纵向隆起部分
       while(left<right)
       {
-          int mid=(left+right)/2;
-          if(arr[i][mid]<arr[i][mid])
+          mid=(left+right)/2;
+          if(arr[mid][i]<arr[mid+1][i])
           {
-            
+            left=mid+1;
+          }else{
+            right=mid;
           }
       }
+      //cout<<arr[left][i];
+      //找横向最大值
+      auto max_iter = max_element(arr[left], arr[left] + n+1);
+      int index = max_iter-arr[left];
+      cout<<index;
   }
+  return 0;
   
 }
+
