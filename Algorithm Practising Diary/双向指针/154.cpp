@@ -19,6 +19,7 @@ int main()
     while(left<=right)
     {
         int mid=(left+right)/2;
+        //其实一样的思路，只需要判断最小值可能在哪一侧即可，但是需要多加一个判断确保二分查找顺利运转
         if(num[mid]==num[n-1])
         {
             right--;
@@ -33,4 +34,5 @@ int main()
     }
     cout<<left;
     return 0;
+
 }
