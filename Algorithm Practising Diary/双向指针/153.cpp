@@ -17,11 +17,12 @@ int main()
     {
         
         int mid=(left+right)/2;
-        
+        //如果中间比最右边大，说明旋转次数大于长度的一半，左边不可能存在最小值
         if(num[mid]>num[n-1])
         {
             left=mid+1;
         }else{
+            //反之，右边不可能存在最小值
             right=mid-1;
         }
     }
@@ -29,3 +30,4 @@ int main()
     return 0;
 
 }
+
