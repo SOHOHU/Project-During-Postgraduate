@@ -3,6 +3,7 @@
 #include <cctype>
 using namespace std;
 
+// 字符全转小写
 string toLowerCase(string& str) {
     string result = str;
     for (char &c : result) {
@@ -10,6 +11,7 @@ string toLowerCase(string& str) {
     }
     return result;
 }
+
 
 int main()
 {
@@ -19,6 +21,7 @@ int main()
     a=toLowerCase(a);
     while(left<=right)
     {
+        //跳过非字母的字符
         if(!isalnum(a[left]))
         {
             left++;
@@ -31,6 +34,7 @@ int main()
             continue;
         }
 
+        //回文判断
         if (a[left]==a[right])
         {
             left++;
@@ -45,4 +49,5 @@ int main()
     cout<<"true";
     no:
     return 0;
+
 }
