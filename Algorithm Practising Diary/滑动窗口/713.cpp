@@ -12,6 +12,7 @@ int main()
     int left=0,sum=0;
     int pro=num[left];
     //初始化
+    //为什么一定要用开区间？因为使用开区间在right到底的时候依然可以讨论好所有的答案
     for(int right=1;right<n;right++)
     {
         //右侧扩张
@@ -37,3 +38,4 @@ int main()
     
 
 }
+
