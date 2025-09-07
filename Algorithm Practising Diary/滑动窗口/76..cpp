@@ -3,6 +3,7 @@
 #include <unordered_map>
 using namespace std;
 
+// 用计数器替代map是一个好思路
 bool is_covered(int cnt_s[], int cnt_t[]) {
     for (int i = 'A'; i <= 'Z'; i++) {
         if (cnt_s[i] < cnt_t[i]) {
@@ -46,3 +47,4 @@ int main()
 }
 
         
+
