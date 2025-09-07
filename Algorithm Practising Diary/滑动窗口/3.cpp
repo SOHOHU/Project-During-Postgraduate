@@ -9,6 +9,7 @@ int main()
     unordered_map<char,int>map;
     int left=0,ans=0,len=1;
     map[str[left]]=1;
+    // 初始化
     for(int right=1;right<str.length();right++)
     {
         map[str[right]]++;
@@ -17,7 +18,9 @@ int main()
             len--;
         }
         len++;
+        //每次右扩都会更新一次最长
         ans=max(len,ans);
+        //一旦重复就左侧收缩
         while(map[str[right]]>1)
         {
             left++;
@@ -28,5 +31,6 @@ int main()
 
     cout<<ans;
     return 0;
+
 
 }
