@@ -11,38 +11,29 @@ int main()
     }
     int left=0,sum=0;
     int pro=num[left];
+    //初始化
     for(int right=1;right<n;right++)
     {
+        //右侧扩张
         if(k<=1)
         {
             return 0;
         }
         pro*=num[right];
-        if(pro>=k&&right!=n-1)
+        if(pro>=k)
         {
+            //此时序列内所有的子序列都是成立的
             sum+=right-left;
+            //左收缩
             while(pro>=k)
             {
                 pro/=num[left];
                 left++;
             }
-        }else if(right==n-1)
-        {
-            while(pro>=k)
-            {
-                pro/=num[left];
-                left++;
-            }
-
-            while(left<=right)
-            {
-                sum+=right-left+1;
-                left++;
-            }
-
         }
     }
     cout<<sum;
     return 0;
     
+
 }
