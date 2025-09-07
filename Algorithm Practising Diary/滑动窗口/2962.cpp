@@ -17,19 +17,21 @@ int main()
     {
         max_value=max(max_value,num[i]);
     }
-
+    // 初始化，先找到最大的元素
     for(int right=1;right<n;right++)
     {
         map[num[right]]++;
+        //右扩张，直到找到k次重复最大值
         while(map[max_value]>=k)
         {
+            //一旦找到，right右侧全部可以包括进来，left收缩
             ans+=n-right;
             map[num[left]]--;
             left++;
-
         }
 
     }
     cout<<ans;
     return 0;
+
 }
