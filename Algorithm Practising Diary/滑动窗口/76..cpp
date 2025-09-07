@@ -44,4 +44,5 @@ int main()
     cout<<s.substr(ans_left, ans_right - ans_left + 1);
     return 0;
 }
+
         
