@@ -20,9 +20,11 @@ int main()
         cin>>num[i];
     }
     /*逆向思维，该方法可以扩展到所有两头操作的题目*/
+    // 头尾被拿掉的值是x，中间剩下的是sum-x，滑动窗口得到sum-x即可
     int left=0,sum1=total(num,0,n)-x,sum2=0,len=1,ans=-1;
     for(int right=1;right<n;right++)
     {
+        // 注意total函数的end没有等
         sum2=total(num,left,right+1);
         len++;
         while(sum2>sum1)
@@ -46,4 +48,5 @@ int main()
     }
     
     return 0;
+
 }
