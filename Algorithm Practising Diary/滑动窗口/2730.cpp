@@ -11,10 +11,12 @@ int main()
     for(int right=1;right<str.length();right++)
     {
         len++;
+        //出现一次重复，阈值++
         if(str[right]==str[right-1])
         {
             temp++;
         }
+        //阈值过高，左侧收缩，又因为开区间把第一次单独写出来了
         if(temp>1)
         {
             len--;
@@ -33,4 +35,5 @@ int main()
     }
     cout<<ans;
     return 0;
+
 }
