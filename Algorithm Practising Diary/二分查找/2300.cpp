@@ -16,6 +16,8 @@ int main()
     }
     int left=0,right=m-1,ans=0,len=0;
     sort(position,position+m);
+    //初始化，因为spell要输出顺序，所以只能对position排序
+    //使用红蓝染色法，找到最小的position可以，蓝色区域（大于）都可以
     for(int i=0;i<n;i++)
     {
         int eff=0;
@@ -25,8 +27,10 @@ int main()
         }else{
             eff=success/spell[i]+1;
         }
+        //对eff向上取整数，这个是至少需要达到的position
         while(left<=right)
         {
+            //二分查找这个eff
             int mid=(left+right)/2;
             if(position[mid]>=eff)
             {
@@ -44,4 +48,5 @@ int main()
 
     }
     return 0;
+
 }
