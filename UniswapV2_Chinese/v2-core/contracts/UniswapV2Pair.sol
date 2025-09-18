@@ -143,24 +143,34 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
      * @param {uint112} _reserve1:tokenB的储备量
      * @return {bool} feeOn: 返回是否接受手续费
      */
+    // 计算手续费，准确来说是协议手续费，在用户增加或者移出流动性时候，回增加新的LP Token
     function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {
-        // 获取收取手续费的地址
+        // 获取收取手续费的地址，通过调用IUniswapV2Factory的feeTo方法实现。
+        // 功能解释：factory本是地址变量，强制转化为接口后调用feeTo方法，返回一个地址赋予feeto
         address feeTo = IUniswapV2Factory(factory).feeTo();
+        // 检查 feeTo 地址是否为零地址。如果不是，则表示手续费功能已开启。
+        // 功能解释，如果feeTo != address(0);成立，feeOn=true，反之为false。
         feeOn = feeTo != address(0);
         // 节省gas
+        // 将状态变量 kLast 的值读取到内存变量 _kLast 中。在 Solidity 中，读取内存变量比反复读取状态变量更节省 gas
+        // kLast 是uniswap的恒定乘积，此处提醒。
         uint _kLast = kLast;
         if (feeOn) {
+            // 确保了只有在已经发生过至少一次交易后，才开始计算手续费
             if (_kLast != 0) {
-                // rootk=sqrt(_reserve0 * _reserve1)
+                // rootk=sqrt(_reserve0 * _reserve1)，即流动性，sqrt为平方根计算
                 uint rootK = Math.sqrt(uint(_reserve0).mul(_reserve1));
                 // 上一次交易后的sqrt(k)值
                 uint rootKLast = Math.sqrt(_kLast);
+                // 流动性池的 k 值增加时（即 sqrt(k) 增加）才计算手续费，k值增加意味着流动池的价值增加了，只要有增加，在用户注入或者取出流动性时。uniswap都会收取0.05%的手续费
                 if (rootK > rootKLast) {
-                    // 分子(lptoken总量*(rootK-rootKLast))
+                    // 接下来就是计算这个手续费
+                    // 分子(lptoken总量*(rootK-rootKLast))，即总量 x 流动性增长量
                     uint numerator = totalSupply.mul(rootK.sub(rootKLast));
-                    // 分母(rooL*5+rooKLast)
+                    // 分母(rooL*5+rooKLast)， 即 5* 当前流动 + 过去流动
                     uint denominator = rootK.mul(5).add(rootKLast);
                     // liquidity = ( totalSupply * ( sqrt(_reserve0 * _reserve1) -  sqrt(_kLast) ) ) / sqrt(_reserve0 * _reserve1) * 5 + sqrt(_kLast)
+                    // 此为协议手续费公式
                     uint liquidity = numerator / denominator;
                     if (liquidity > 0) _mint(feeTo, liquidity);
                 }
@@ -175,33 +185,39 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
      * @param {address} to:接受lptoken的地址
      * @return {uint} liquidity: lptoken的数量
      */
+    
     function mint(address to) external lock returns (uint liquidity) {
         //  节省gas
+        // 获取当前存储的两个Token
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves();
         // 获取进行添加流动性的两个token的数量
         uint balance0 = IERC20(token0).balanceOf(address(this));
         uint balance1 = IERC20(token1).balanceOf(address(this));
+        // 通过这个插值可以计算用户注入了多少两边货币
         uint amount0 = balance0.sub(_reserve0);
         uint amount1 = balance1.sub(_reserve1);
-        // 判断是否进行收取手续费
+        // 判断是否进行收取手续费，前面说过，这部分是协议手续费。
         bool feeOn = _mintFee(_reserve0, _reserve1);
         // 节省gas，必须在这里定义，因为totalSupply可以在_mintFee中更新
         uint _totalSupply = totalSupply;
-        // 创建一个新的流动性池
+        // 创建一个新的流动性池，或者第一次交易
         if (_totalSupply == 0) {
+            // 定义初始需要的LP数量
             liquidity = Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
             // 永久锁定MINIMUM_LIQUIDITY
             _mint(address(0), MINIMUM_LIQUIDITY);
         } else {
             // 添加流动性所获得的lptoken数量(进行添加流动性的两种token的数量*目前lptoken的数量/当前token的储备量-->取较小值)
+            // LP Token获取公式，之前已经上课上过了
             liquidity = Math.min(amount0.mul(_totalSupply) / _reserve0, amount1.mul(_totalSupply) / _reserve1);
         }
         require(liquidity > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED');
         // 铸造lptoken函数
+        // 铸造 LP token 给接收者
         _mint(to, liquidity);
         // 更新储备函数
         _update(balance0, balance1, _reserve0, _reserve1);
-        // 如果收取手续费，更新交易后的k值
+        // 如果收取手续费，更新交易后的k值，因为收取手续费后_reserve0, _reserve1又有变化了
         if (feeOn) kLast = uint(reserve0).mul(reserve1);
         emit Mint(msg.sender, amount0, amount1);
     }
@@ -220,19 +236,25 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         uint balance0 = IERC20(_token0).balanceOf(address(this));
         uint balance1 = IERC20(_token1).balanceOf(address(this));
         // 为什么用addres(this)?-->因为获取退出lptoken数量时，是在route合约中先将lptoken转到当前合约，然后直接获得当前合约lptoken的数量
+        // 具体来说，合约不能直接销毁用户的LP Token，这是巨大的安全漏洞。根据ERC20标准，想要销毁代币，需要用户先把LP Token转账到Pair的合约上。由合约销毁自己账户上的LP Token，再打钱。
+        // 合约上自己的LP Token一般是0，创建的时候设置的。因此直接访问即可
         uint liquidity = balanceOf[address(this)];
         // 收取手续费
         bool feeOn = _mintFee(_reserve0, _reserve1);
         // 节省gas，必须在这里定义，因为totalSupply可以在_mintFee中更新
         uint _totalSupply = totalSupply; 
         // 使用余额确保按比例分配-->(持有lptoken/总lptoken)*合约中持有token的数量
+        // 公式，提取的两部分Token数量，上课也讲过了。
         amount0 = liquidity.mul(balance0) / _totalSupply; 
         amount1 = liquidity.mul(balance1) / _totalSupply; 
         require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
+        // 删除LP Token，再次强调，是合约自己账户上的
         _burn(address(this), liquidity);
         // 转账两种token
+        // 实现安全转账，前面说过的函数
         _safeTransfer(_token0, to, amount0);
         _safeTransfer(_token1, to, amount1);
+        // 更新一下当前的两个代币
         balance0 = IERC20(_token0).balanceOf(address(this));
         balance1 = IERC20(_token1).balanceOf(address(this));
         // 更新储备量函数
@@ -249,6 +271,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
      * @param {address} to:接受token交换的地址
      * @param {bytes} data:是否进行回调其他方法
      */
+
+    
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
         require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');
         // 获取token在交易对中的储备量，节省gas
