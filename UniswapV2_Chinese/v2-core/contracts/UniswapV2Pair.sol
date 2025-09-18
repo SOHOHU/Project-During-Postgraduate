@@ -264,38 +264,37 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         emit Burn(msg.sender, amount0, amount1, to);
     }
 
-    /**
-     * @dev: 根据tokenA的数量在交易池中进行交换tokenB
-     * @param {uint} amount0Out:to地址接受tokenA的数量
-     * @param {uint} amount1Out:to地址接受tokenB的数量
-     * @param {address} to:接受token交换的地址
-     * @param {bytes} data:是否进行回调其他方法
-     */
-
-    
+    //交易函数，顺便实现了闪电贷
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
+        // 检查是否有需要取出的两种代币，也可以是一种，如果简单交易则一个设为0即可
         require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');
         // 获取token在交易对中的储备量，节省gas
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves();
+        // 基本的判断就不再说了
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
         uint balance0;
         uint balance1;
         {
-            // _token{0,1}的作用域，避免堆栈过深的错误
+            // _token{0,1}的作用域，避免堆栈过深的错误，同时此处执行后会从缓存中移出，节省gas
             address _token0 = token0;
             address _token1 = token1;
             require(to != _token0 && to != _token1, 'UniswapV2: INVALID_TO');
-            // 转移代币
+            // 转移代币，对非0进行安全转账
             if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); 
             if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); 
             // 用于回调合约来实现一些特定的业务逻辑或其他自定义功能(闪电贷....)
+            // 功能解释：
+            // 1、如果传递了额外的数据执行这个回调函数，向用户输出相关信息，没有就是普通交易
+            // 2、这里成行的功能是uniswapV2Call，闪电贷
             if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
             // 合约拥有两种token的数量
             balance0 = IERC20(_token0).balanceOf(address(this));
             balance1 = IERC20(_token1).balanceOf(address(this));
         }
-        // 进行兑换的token量
+        // 假设amount0Out非0，对应的amount1In也是非0，而amount0In是0。说明是用户投入Token1，得到了Token0
+        // 假设是闪电贷，则都非0
         // 获得合约两种token的数量，前提是(balance > _reserve - amountOut)，就是当前合约拥有的token数量应该是大于(储备值-输出到to地址的值)，返回之间的差值
+        // 在单纯交易的情况下，假设amount0Out非0，因为用户已转账，输入了Token1，所以判断得以进行。
         uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
         uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
         // 投入金额不足
@@ -303,6 +302,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         {
             // Adjusted{0,1}的作用域，避免堆栈过深的错误
             // balanceAdjusted = balance * 1000 - amountIn * 3(确保在计算余额调整后的值时不会因为小数精度问题而导致错误)
+            // 基于前面的单纯交易假设，仅看balance1Adjusted即可
+            // 功能解释:这里是balanceAdjusted是不考虑手续费下的换算情况，这样才可以确定恒定乘积公式的满足
             uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
             uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
             // 确保在交易完成后，资金池的储备量满足 Uniswap V2 中的 K 恒定公式，即 K = _reserve0 * _reserve1
@@ -321,10 +322,12 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
      * @dev: 使两个token的余额与储备相等
      * @param {address} to:接受两个token的余额与储备之间差值的地址
      */
+     // 验证，避免转账错误和闪电贷的计算错误
     function skim(address to) external lock {
-        // 节省汽油
+        // 节省gas
         address _token0 = token0;
         address _token1 = token1;
+        // 将多余的token0和token1返回给账户，IERC20(_token0).balanceOf(address(this))即可获取余额，前面说过
         _safeTransfer(_token0, to, IERC20(_token0).balanceOf(address(this)).sub(reserve0));
         _safeTransfer(_token1, to, IERC20(_token1).balanceOf(address(this)).sub(reserve1));
     }
