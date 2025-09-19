@@ -1,11 +1,12 @@
 # UniswapV2
 
-### **我对UniswapV2的代码进行了中文注释，如有需要请打开各自具体的sol文件进行查看，希望能帮助到您，如有任何错误或者建议希望能及时联系我**.
+### **在基于kpyaoqi提供的uniswap中文注释的基础上，我对UniswapV2的代码进行了进一步中文注释，基本上是逐行注释，其中包含了许多关键字的解释和功能解释。如有需要请打开各自具体的sol文件进行查看，希望能帮助到您，如有任何错误或者建议希望能及时联系我**.
 
-### 介绍：
-
-![image-20230524155033168](Encephalogram.png) 
-
+### 致谢：
+kpyaoqi提供的uniswapV2代码：
+https://github.com/kpyaoqi/UniswapV2_Chinese.git
+成都信息工程学院梁培利老师的区块链金融公开课：
+https://www.bilibili.com/video/BV1xs4y127xW
 
 
 Uniswap V2是一种基于以太坊的去中心化交易协议，旨在提供快速、安全、无信任的代币交换服务。它是Uniswap协议的第二个版本，是对第一个版本的改进和升级。
